@@ -89,30 +89,65 @@ runtimeobject.lib
 
 int main () 
 {
-    ::printf("HelloD3D12");
-
     // SDL_Init
     SDL_Init(SDL_INIT_VIDEO);
 
     // Enable Debug Layer
 #if ENABLE_DEBUG_LAYER > 0
-    ID3D12Debug * debug_interface_dx;
+    ID3D12Debug * debug_interface_dx = nullptr;
     if(SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debug_interface_dx)))) {
         debug_interface_dx->EnableDebugLayer();
     }
 #endif
-
     // Create a Window
+    SDL_Window * wnd = SDL_CreateWindow("LearningD3D12", 0, 0, 1280, 720, 0);
+    if(nullptr == wnd) {
+        ::abort();
+    }
 
-    // Query Adapter
+    // Query Adapter (PhysicalDevice)
+    IDXGIFactory * dxgi_factory = nullptr;
+    CHECK_AND_FAIL(CreateDXGIFactory(IID_PPV_ARGS(&dxgi_factory)));
 
-    // Create Device
+    constexpr uint32_t MaxAdapters = 8;
+    IDXGIAdapter * adapters[MaxAdapters] = {};
+    IDXGIAdapter * pAdapter;
+    for (UINT i = 0; dxgi_factory->EnumAdapters(i, &pAdapter) != DXGI_ERROR_NOT_FOUND; ++i)
+    {
+        adapters[i] = pAdapter;
+        DXGI_ADAPTER_DESC adapter_desc = {};
+        ::printf("GPU Info [%d] :\n", i);
+        if(SUCCEEDED(pAdapter->GetDesc(&adapter_desc))) {
+            ::printf("\tDescription: %ls\n", adapter_desc.Description);
+            ::printf("\tDedicatedVideoMemory: %zu\n", adapter_desc.DedicatedVideoMemory);
+        }
+    } // WARP -> Windows Advanced Rasterization ...
 
-    // Check some supports (?)
+    // Create Logical Device
+    ID3D12Device * d3d_device = nullptr;
+    auto res = D3D12CreateDevice(adapters[0], D3D_FEATURE_LEVEL_12_0, IID_PPV_ARGS(&d3d_device));
+    CHECK_AND_FAIL(res);
 
     // Create Command Queues
 
-    // Create Swapchain
+    // Create Swapchain 
+
+    dxgi_factory->Release();
+    debug_interface_dx->Release();
+
+    // Loop 
+    /*
+    * 
+        // Wait for fences
+        CHECK(YRB::WaitForFences(&fences_framedone[frame_index], 1));
+
+        - SwapChain -> Give me the next image to render to.
+
+        - Render to Image
+
+        - Present SwapChain Image
+    */
+
 
     // Other stuff -> Shaders, DescriptorManagement (DescriptorHeap, RootSignature), PSO, Sync Objects, Buffers, Textures, ...
     
