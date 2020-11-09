@@ -31,6 +31,12 @@
 #pragma comment (lib, "Version")
 #pragma comment (lib, "Winmm")
 
+#pragma comment (lib, "d3d12")
+#pragma comment (lib, "dxgi")
+#pragma comment (lib, "dxguid")
+#pragma comment (lib, "uuid")
+#pragma comment (lib, "gdi32")
+
 #define _CRT_SECURE_NO_WARNINGS 1
 
 #define NOMINMAX
@@ -43,17 +49,72 @@
 #include <cstdio>
 #include <algorithm>
 
-//#define WIN32_LEAN_AND_MEAN
-//#include <Windows.h>        // GetModuleHandle()
+//// Windows Runtime Library. Needed for Microsoft::WRL::ComPtr<> template class.
+//#include <wrl.h>
+//using namespace Microsoft::WRL;
+
+/*
+d3d12.lib
+dxgi.lib
+dxguid.lib
+uuid.lib
+kernel32.lib
+user32.lib
+gdi32.lib
+winspool.lib
+comdlg32.lib
+advapi32.lib
+shell32.lib
+ole32.lib
+oleaut32.lib
+odbc32.lib
+odbccp32.lib
+runtimeobject.lib
+*/
+
+#define SUCCEEDED(hr)   (((HRESULT)(hr)) >= 0)
+#define FAILED(hr)      (((HRESULT)(hr)) < 0)
+#define CHECK_AND_FAIL(hr)                          \
+    if (FAILED(hr)) {                               \
+        ::printf("[ERROR] " #hr "() failed. \n");   \
+        ::abort();                                  \
+    }                                               \
+    /**/
 
 #if defined(_DEBUG)
-#define ENABLE_VALIDATION
+#define ENABLE_DEBUG_LAYER 1
+#else
+#define ENABLE_DEBUG_LAYER 0
 #endif
 
-int main () {
+int main () 
+{
+    ::printf("HelloD3D12");
+
     // SDL_Init
     SDL_Init(SDL_INIT_VIDEO);
 
-    ::printf("HelloD3D12");
+    // Enable Debug Layer
+#if ENABLE_DEBUG_LAYER > 0
+    ID3D12Debug * debug_interface_dx;
+    if(SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debug_interface_dx)))) {
+        debug_interface_dx->EnableDebugLayer();
+    }
+#endif
+
+    // Create a Window
+
+    // Query Adapter
+
+    // Create Device
+
+    // Check some supports (?)
+
+    // Create Command Queues
+
+    // Create Swapchain
+
+    // Other stuff -> Shaders, DescriptorManagement (DescriptorHeap, RootSignature), PSO, Sync Objects, Buffers, Textures, ...
+    
     return 0;
 }
